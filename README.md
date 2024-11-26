@@ -1,5 +1,196 @@
 # Reddit Programming Assignment
 
+This repository contains a program that fetches posts from subreddits in real-time, tracks the top posts by upvotes, and identifies users with the most posts. It is built to handle concurrency, rate limits, and is structured following SOLID principles for scalability and maintainability.
+
+---
+
+## 🚀 How to Start
+
+### Prerequisites
+
+1. **Node.js** (16+)
+2. **npm** or **yarn**
+3. A **Reddit API Access Token**.  
+   Follow these steps to generate it:
+   - Go to the [Reddit App Developer Page](https://www.reddit.com/prefs/apps).
+   - Create an application and note the `Client ID` and `Client Secret`.
+   - Use the `client_credentials` flow to get an OAuth token. Example using `curl`:
+     ```bash
+     curl -X POST -d "grant_type=client_credentials" -u "<client_id>:<client_secret>" https://www.reddit.com/api/v1/access_token
+     ```
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/prince0409/reddit-post-user-aggregator.git
+   cd reddit-post-user-aggregator
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory and configure it with your Reddit API credentials:
+   ```env
+   CLIENT_ID=<your-client-id>
+   CLIENT_SECRET=<your-client-secret>
+   USER_AGENT=<your-user-agent>
+   ```
+
+4. Run the program:
+   ```bash
+   npm start
+   ```
+
+---
+
+## 📋 What It Does
+
+This program:
+- Fetches posts from multiple subreddits in **real-time**.
+- Tracks:
+  - **Top posts** based on upvotes.
+  - **Users with the most posts** (by aggregating posts from subreddits).
+- Handles:
+  - **Concurrency**: Fetches from multiple subreddits simultaneously.
+  - **Rate limits**: Complies with Reddit API’s rate-limiting policies.
+- Provides a scalable, modular, and production-ready structure using **SOLID principles**.
+
+---
+
+## 🗂️ Folder Structure
+
+```plaintext
+src/
+├── api/                          # Handles API interactions
+│   ├── reddit/                   # Reddit API-specific functions
+│   │   ├── RedditAPI.ts
+│   │   ├── index.ts
+├── config/                       # Application configuration
+│   ├── index.ts
+├── models/                       # Data models
+│   ├── post/                     # Post-specific models
+│   │   ├── Post.ts
+│   │   ├── index.ts
+│   ├── user/                     # User-specific models
+│   │   ├── User.ts
+│   │   ├── index.ts
+├── services/                     # Core business logic
+│   ├── posts/                    # Post-specific services
+│   │   ├── PostService.ts
+│   │   ├── index.ts
+│   ├── users/                    # User-specific services
+│   │   ├── TopUsersService.ts
+│   │   ├── index.ts
+├── utils/                        # Utility functions
+│   ├── logger/                   # Logging utilities
+│   │   ├── Logger.ts
+│   │   ├── index.ts
+│   ├── rateLimiter/              # Rate limiter utilities
+│   │   ├── RateLimiter.ts
+│   │   ├── index.ts
+├── workers/                      # Background workers
+│   ├── fetchPosts/               # Fetch posts worker
+│   │   ├── FetchWorker.ts
+│   │   ├── index.ts
+├── tests/                        # Unit and integration tests
+│   ├── api/                      # Tests for API functions
+│   ├── services/                 # Tests for services
+│   ├── utils/                    # Tests for utilities
+├── app.ts                        # Entry point
+├── server.ts                     # REST API server
+```
+
+---
+
+## 🛠️ Reddit APIs Used
+
+1. **Fetch posts from a subreddit**:
+   - Endpoint: `GET /r/{subreddit}/new`
+   - Used to fetch all posts from a subreddit for aggregation.
+
+2. **Fetch top posts**:
+   - Endpoint: `GET /r/{subreddit}/top`
+   - Used to fetch the top posts from a subreddit within a specific time period.
+
+3. **Fetch subreddits**:
+   - Endpoint: `GET /subreddits/{where}`
+   - Fetches subreddits based on different criteria (`popular`, `new`, etc.).
+
+---
+
+## ⚙️ How It Works
+
+### 1. **Real-Time Fetching**
+- Subreddits are fetched in **parallel** using `Promise.allSettled` for concurrency.
+- The application uses **background workers** to periodically fetch and process new posts.
+
+### 2. **Rate Limiting**
+- Reddit API rate limits are respected using a **Rate Limiter Utility**.
+- The limiter ensures API requests stay within the allowed limits (e.g., 60 requests/minute).
+
+### 3. **Concurrency**
+- Multiple subreddit fetches are handled concurrently.
+- Partial failures (e.g., one subreddit fetch fails) do not block the entire process.
+
+---
+
+## 🏗️ SOLID Principles
+
+1. **Single Responsibility**:
+   - Each module (e.g., `PostService`, `TopUsersService`) handles a specific task.
+   - Utilities like `RateLimiter` and `Logger` are decoupled from business logic.
+
+2. **Open/Closed Principle**:
+   - The system is open for extension (e.g., adding new APIs) but closed for modification of existing logic.
+
+3. **Liskov Substitution**:
+   - All services and utilities follow strict contracts, ensuring seamless substitution.
+
+4. **Interface Segregation**:
+   - Small, focused interfaces ensure only necessary dependencies are used.
+
+5. **Dependency Inversion**:
+   - High-level modules depend on abstractions (e.g., `fetchSubredditPosts`), not concrete implementations.
+
+---
+
+## 🔮 What More Can Be Done
+
+1. **Persist Data**:
+   - Store fetched data (posts, users) in a database (e.g., PostgreSQL, MongoDB).
+   - Allow historical analysis of top posts/users.
+
+2. **Get Top Users with Reddit API (if available)**:
+   - Directly use Reddit APIs to fetch users' statistics if Reddit provides it.
+
+3. **Batch API Calls for Aggregation**:
+   - If Reddit doesn't provide user-level statistics, batch fetches can be performed, aggregating posts by `author`. Here's a conceptual snippet:
+     ```typescript
+     const aggregateUsers = (posts: Post[]): Record<string, number> => {
+         return posts.reduce((acc, post) => {
+             acc[post.author] = (acc[post.author] || 0) + 1;
+             return acc;
+         }, {});
+     };
+
+     const topUsers = Object.entries(aggregateUsers(posts))
+         .map(([author, count]) => ({ author, count }))
+         .sort((a, b) => b.count - a.count)
+         .slice(0, 10);
+     ```
+
+4. **Scalability Improvements**:
+   - Use a message queue (e.g., RabbitMQ, Kafka) for distributing fetch and processing tasks.
+   - Deploy as a microservice with load balancing for handling multiple subreddits efficiently.
+
+5. **Production Readiness**:
+   - Add logging with monitoring tools like Prometheus or Datadog.
+   - Implement error recovery mechanisms for failed API requests.
+
+---
 ## Overview
 
 Reddit, like many social media platforms, allows users to share and engage with content based on their interests. For this assignment, the task is to build an application that interacts with Reddit’s API to listen to a chosen subreddit and track various statistics.
