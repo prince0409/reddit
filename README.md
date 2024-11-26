@@ -23,7 +23,7 @@ This repository contains a program that fetches posts from subreddits in real-ti
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/reddit-post-user-aggregator.git
+   git clone https://github.com/prince0409/reddit-post-user-aggregator.git
    cd reddit-post-user-aggregator
    ```
 
