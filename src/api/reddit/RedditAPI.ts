@@ -14,7 +14,6 @@ export const fetchAccessToken = async (
       method: 'POST',
       auth: { username: clientId, password: clientSecret },
       headers: {
-        'User-Agent': userAgent,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     }
@@ -31,7 +30,7 @@ export const fetchSubredditPosts = async (
 ): Promise<any[]> => {
   await rateLimiter();
   const response = await axios.get(`${REDDIT_BASE_URL}/r/${subreddit}/top`, {
-    headers: { Authorization: `Bearer ${token}`, 'User-Agent': userAgent },
+    headers: { Authorization: `Bearer ${token}` },
     params: {
       limit: 10,
       t: 'all', // Time period for top posts

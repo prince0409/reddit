@@ -1,7 +1,15 @@
 import { Post } from '../../models/post/Post';
 
 export const getTopPosts = (posts: Post[], limit: number = 10): Post[] =>
-  [...posts].sort((a, b) => b.ups - a.ups).slice(0, limit);
+  [...posts]
+    .sort((a, b) => b.ups - a.ups)
+    .map((post) => ({
+      id: post.id,
+      title: post.title,
+      ups: post.ups,
+      author: post.author,
+    }))
+    .slice(0, limit);
 
 export const getTopUsers = (
   posts: Post[],

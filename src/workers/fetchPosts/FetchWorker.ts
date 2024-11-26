@@ -21,8 +21,6 @@ export const fetchWorker = async (
         userAgent,
         rateLimiter
       );
-      console.log('posts', posts);
-
       // Compute statistics
       const topPosts = getTopPosts(posts, limit);
       const topUsers = getTopUsers(posts, limit);
@@ -31,8 +29,8 @@ export const fetchWorker = async (
       setTopPosts(topPosts);
       setTopUsers(topUsers);
       // Log the statistics
-      // log(`Top Posts: ${JSON.stringify(topPosts, null, 2)}`);
-      // log(`Top Users: ${JSON.stringify(topUsers, null, 2)}`);
+      log(`Top Posts: ${JSON.stringify(topPosts, null, 2)}`);
+      log(`Top Users: ${JSON.stringify(topUsers, null, 2)}`);
     } catch (error) {
       log(`Error in fetchWorker: ${error}`);
     }

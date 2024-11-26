@@ -89,7 +89,7 @@ const StatsDashboard: React.FC = () => {
           <h2 className="text-xl mt-4">Top Users</h2>
           <StatsTable
             rows={topUsers.map((user) => ({
-              ...user,
+              id: user.user,
               title: user.user,
               count: user.postCount,
             }))}
